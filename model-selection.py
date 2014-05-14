@@ -77,5 +77,41 @@ kfold = cross_validation.KFold(n=len(Y))
 for c in C_s:
   svc.C = c
   scores.append(np.mean(cross_validation.cross_val_score(svc, X, y, cv=kfold)))
-  
 print scores
+
+
+
+# grid search
+# chooses the parameters that maximize the cross-validation score
+from sklearn.grid_search import GridSearchCV
+
+gammas = np.logspace(-6, -1, 10)
+clf = GridSearchCV(estimator=svc, param_grid=dict(gamma=gammas),n_jobs=-1)
+clf.fit(X_digits[:1000], y_digits[:1000])
+ # GridSearchCV(cv=None,...
+clf.best_score_
+ # 0.9889...
+clf.best_estimator_.gamma
+ # 9.9999999999999995e-07
+
+# Prediction performance on test set is not as good as on train set
+clf.score(X_digits[1000:], y_digits[1000:])
+ # 0.94228356336260977
+ 
+# can nest cross-validation routines
+# pass a grid search to cross_validation.cross_val_score()
+cross_validation.cross_val_score(clf, X_digits, y_digits)
+ # array([ 0.97996661,  0.98163606,  0.98330551])
+ 
+# lasso cv object automatically chooses its paramater via cv
+lasso = linear_model.LassoCV()
+diabetes = datasets.load_diabetes()
+X_diabetes = diabetes.data
+y_diabetes = diabetes.target
+lasso.fit(X_diabetes, y_diabetes)
+ # LassoCV(alphas=None, copy_X=True, cv=None, eps=0.001, fit_intercept=True,
+ #   max_iter=1000, n_alphas=100, normalize=False, precompute='auto',
+ #   tol=0.0001, verbose=False)
+# The estimator chose automatically its lambda:
+lasso.alpha_
+ # 0.01229...
